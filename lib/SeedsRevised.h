@@ -65,6 +65,9 @@
 #include <string>
 #include <assert.h>
 
+#include "Signature.h"
+#include "Tools.h"
+
 #ifndef SEEDS_REVISED_H
 #define	SEEDS_REVISED_H
 
@@ -349,6 +352,16 @@ public:
      * at a new level.
      */
     virtual void reinitializeSpatialMemory();
+
+    /**
+     * Compute the signature of a set of superpixels. Each description
+     * corresponds to: (weight, x, y, L, a)
+     *
+     * Added by Emilio Garcia-Fidalgo.
+     *
+     * @param signature
+     */
+    void computeSignature(Signature& sign);
 
 protected:
 

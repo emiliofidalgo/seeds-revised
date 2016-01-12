@@ -977,6 +977,34 @@ void SEEDSRevised::reinitializeSpatialMemory() {
     }
 }
 
+void SEEDSRevised::computeSignature(Signature& sign)
+{
+    int** labels = this->getLabels();
+    cv::Mat* img = this->image;
+    assert(img->channels() == 3);
+
+    int numberOfSuperpixels = Integrity::countSuperpixels(labels, img->rows, img->cols);
+    sign.resize(numberOfSuperpixels);
+
+    // Iteraring for each pixel in the image
+    for (int i = 0; i < (this->image)->rows; i++)
+    {
+        for (int j = 0; j < (this->image)->cols; j++)
+        {
+            int label = labels[i][j];
+
+            sign.spixels[label].addPixel(i, j, img->at<cv::Vec3b>(i, j));
+        }
+    }
+
+    // Computing descriptors of superpixels    
+    for (int i = 0; i < numberOfSuperpixels; i++)
+    {
+        sign.spixels[i].id = i;
+        sign.spixels[i].computeDescription(*img);
+    }
+}
+
 int SEEDSRevised::getLevel() const {
     return this->currentLevel;
 }
