@@ -29,28 +29,27 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef SIGNATURE_H
-#define SIGNATURE_H
 
-#include "Superpixel.h"
+#ifndef SUPERPIXELATION_H
+#define SUPERPIXELATION_H
 
-#define SGN_REDOP_MAX 0
-#define SGN_REDOP_MIN 1
-#define SGN_REDOP_AVG 2
+#include "SeedsRevised.h"
+#include "Tools.h"
 
-class Signature
+class Superpixelation
 {
 public:
-    Signature();
-    Signature(const int nspixels);
+    Superpixelation(const cv::Mat& image, const cv::Rect& roi, const int nspixels);
+    virtual ~Superpixelation();
 
-    void resize(const int nspixels);
-    void reset();
-    static double distance(const Signature& a, const Signature& b, int redop_left = SGN_REDOP_MAX, int redop_right = SGN_REDOP_MIN, int spx_dist_type = SPX_DIST_CUSTOM);
+    void createSuperpixelation();
+    bool computeSignature(const cv::Rect& roi, Signature& sign);
+    void show();
 
-    std::string toString();
-
-    std::vector<Superpixel> spixels;
+private:
+    cv::Mat image;
+    cv::Rect roi;
+    SEEDSRevisedMeanPixels* seeds;
 };
 
-#endif // SIGNATURE_H
+#endif // SUPERPIXELATION_H

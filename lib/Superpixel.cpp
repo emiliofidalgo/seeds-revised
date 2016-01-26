@@ -77,8 +77,8 @@ void Superpixel::computeDescription(const cv::Mat& image)
 
     // Computing means
     weight = npixels / static_cast<double>(image.rows * image.cols); desc(0, 0) = weight;
-    x /= npixels; x /= image.cols; desc(1, 0) = x;
-    y /= npixels; y /= image.rows; desc(2, 0) = y;
+    x /= npixels; x /= image.rows; desc(1, 0) = x;
+    y /= npixels; y /= image.cols; desc(2, 0) = y;    
     L /= npixels; desc(3, 0) = L;
     a /= npixels; desc(4, 0) = a;
     b /= npixels; desc(5, 0) = b;
@@ -143,7 +143,13 @@ double Superpixel::distance_L1(const Superpixel& a, const Superpixel& b)
 
 double Superpixel::distance_CUSTOM(const Superpixel& a, const Superpixel& b, cv::Mat weights)
 {
-    cv::Mat w = cv::Mat::eye(6, 6, CV_64F);
+    //cv::Mat w = cv::Mat::eye(6, 6, CV_64F);
+
+    cv::Mat w = cv::Mat::zeros(6, 6, CV_64F);
+    w.at<double>(3, 3) = 1.0;
+    w.at<double>(4, 4) = 1.0;
+    w.at<double>(5, 5) = 1.0;
+
     if (!weights.empty())
     {
         weights.copyTo(w);

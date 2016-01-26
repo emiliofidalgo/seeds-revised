@@ -65,11 +65,11 @@
 #include <string>
 #include <assert.h>
 
-#include "Signature.h"
-#include "Tools.h"
-
 #ifndef SEEDS_REVISED_H
 #define	SEEDS_REVISED_H
+
+#include "Signature.h"
+#include "Tools.h"
 
 /**
  * For OpenCV3 and OpenCV2 compatibility:
@@ -362,6 +362,17 @@ public:
      * @param signature
      */
     void computeSignature(Signature& sign);
+
+    /**
+     * Compute the signature of a set of superpixels inside a ROI.
+     * Each description corresponds to: (weight, x, y, L, a)
+     *
+     * Added by Emilio Garcia-Fidalgo.
+     *
+     * @param roi
+     * @param signature
+     */
+    void computeSignature(const cv::Rect& roi, Signature& sign);
 
 protected:
 

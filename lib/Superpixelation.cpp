@@ -29,28 +29,60 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef SIGNATURE_H
-#define SIGNATURE_H
 
-#include "Superpixel.h"
+#include "Superpixelation.h"
 
-#define SGN_REDOP_MAX 0
-#define SGN_REDOP_MIN 1
-#define SGN_REDOP_AVG 2
-
-class Signature
+Superpixelation::Superpixelation(const cv::Mat& image, const cv::Rect& roi, const int nspixels) :
+    seeds(0)
 {
-public:
-    Signature();
-    Signature(const int nspixels);
+    image.copyTo(this->image);
+    this->roi = roi;
+    cv::Mat patch = this->image(this->roi);
+    seeds = new SEEDSRevisedMeanPixels(patch, nspixels, 5, 1, 0.1f, 0.25f);
+}
 
-    void resize(const int nspixels);
-    void reset();
-    static double distance(const Signature& a, const Signature& b, int redop_left = SGN_REDOP_MAX, int redop_right = SGN_REDOP_MIN, int spx_dist_type = SPX_DIST_CUSTOM);
+Superpixelation::~Superpixelation()
+{
+    delete seeds;
+}
 
-    std::string toString();
+void Superpixelation::createSuperpixelation()
+{
+    seeds->initialize();
+    seeds->iterate(2);
+}
 
-    std::vector<Superpixel> spixels;
-};
+bool Superpixelation::computeSignature(const cv::Rect& roi, Signature& sign)
+{
+    // Check if the current ROI is inside the superpixelation
+    bool is_inside = (roi & this->roi) == roi;
 
-#endif // SIGNATURE_H
+    if (!is_inside)
+    {
+        return false;
+    }
+    else
+    {
+        // Computing the new ROI according to the superpixelation
+        cv::Rect new_roi = roi;
+        new_roi.x -= this->roi.x;
+        new_roi.y -= this->roi.y;
+        seeds->computeSignature(new_roi, sign);
+        return true;
+    }
+}
+
+void Superpixelation::show()
+{
+    cv::Mat out_img;
+    image.copyTo(out_img);
+    cv::Mat patch = out_img(this->roi);
+
+    // Getting contour image
+    int bgr[] = {0, 0, 204};
+    cv::Mat contourImage = Draw::contourImage(seeds->getLabels(), patch, bgr);
+    contourImage.copyTo(patch);
+
+    cv::imshow("Superpixelation", out_img);
+    cv::waitKey(0);
+}

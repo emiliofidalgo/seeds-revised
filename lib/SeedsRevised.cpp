@@ -982,26 +982,59 @@ void SEEDSRevised::computeSignature(Signature& sign)
     int** labels = this->getLabels();
     cv::Mat* img = this->image;
     assert(img->channels() == 3);
-
     int numberOfSuperpixels = Integrity::countSuperpixels(labels, img->rows, img->cols);
     sign.resize(numberOfSuperpixels);
 
     // Iteraring for each pixel in the image
-    for (int i = 0; i < (this->image)->rows; i++)
+    for (int x = 0; x < img->cols; x++)
     {
-        for (int j = 0; j < (this->image)->cols; j++)
+        for (int y = 0; y < img->rows; y++)
         {
-            int label = labels[i][j];
+            int label = labels[y][x];
 
-            sign.spixels[label].addPixel(i, j, img->at<cv::Vec3b>(i, j));
+            sign.spixels[label].addPixel(x, y, img->at<cv::Vec3b>(y, x));
         }
     }
 
     // Computing descriptors of superpixels    
-    for (int i = 0; i < numberOfSuperpixels; i++)
+    for (int i = 0; i < sign.spixels.size(); i++)
     {
-        sign.spixels[i].id = i;
         sign.spixels[i].computeDescription(*img);
+    }
+}
+
+void SEEDSRevised::computeSignature(const cv::Rect& roi, Signature& sign)
+{
+    int** labels = this->getLabels();
+    cv::Mat* img = this->image;
+    assert(img->channels() == 3);
+    int numberOfSuperpixels = Integrity::countSuperpixels(labels, img->rows, img->cols);
+    Signature aux_sign(numberOfSuperpixels);
+
+    // Establishing the limits for iteration
+    int x_init = static_cast<int>(roi.x);
+    int y_init = static_cast<int>(roi.y);
+    int x_end = static_cast<int>(roi.x + roi.width);
+    int y_end = static_cast<int>(roi.y + roi.height);
+
+    // Iteraring for each pixel in the ROI
+    for (int x = x_init; x < x_end; x++)
+    {
+        for (int y = y_init; y < y_end; y++)
+        {
+            int label = labels[y][x];
+            aux_sign.spixels[label].addPixel(x, y, img->at<cv::Vec3b>(y, x));
+        }
+    }
+
+    // Maintaining only the superpixels with at least one pixel
+    for (int i = 0; i < aux_sign.spixels.size(); i++)
+    {
+        if (aux_sign.spixels[i].total_pixels > 0)
+        {
+            sign.spixels.push_back(aux_sign.spixels[i]);
+            sign.spixels[sign.spixels.size() - 1].computeDescription(*img);
+        }
     }
 }
 
